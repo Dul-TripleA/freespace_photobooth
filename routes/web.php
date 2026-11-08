@@ -43,9 +43,8 @@ Route::prefix('kiosk')->name('kiosk.')->group(function () {
 });
 
 // Placeholder Halaman Galeri Publik (Diakses dari HP saat scan QR Code)
-Route::get('/gallery', function(\Illuminate\Http\Request $request) {
-    Route::get('/gallery', [GalleryController::class, 'show'])->name('gallery.show');
-})->name('gallery.show');
+// Halaman Galeri Publik (Diakses dari HP saat scan QR Code)
+Route::get('/gallery', [\App\Http\Controllers\Public\GalleryController::class, 'show'])->name('gallery.show');
 
 Route::get('/', function () {
     return redirect()->route('kiosk.home');
