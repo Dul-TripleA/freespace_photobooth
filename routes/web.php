@@ -49,3 +49,8 @@ Route::get('/gallery', [\App\Http\Controllers\Public\GalleryController::class, '
 Route::get('/', function () {
     return redirect()->route('kiosk.home');
 });
+
+// Route Kelola Frame untuk Admin
+Route::get('/admin/frames', [\App\Http\Controllers\Admin\FrameController::class, 'index'])->name('admin.frames.index');
+Route::post('/admin/frames', [\App\Http\Controllers\Admin\FrameController::class, 'store'])->name('admin.frames.store');
+Route::delete('/admin/frames/{id}', [\App\Http\Controllers\Admin\FrameController::class, 'destroy'])->name('admin.frames.destroy');
