@@ -20,6 +20,11 @@ const totalPoses = props.frame?.total_poses || 3;
 const isSequenceRunning = ref(false);
 const isFinished = ref(false);
 
+// State & Variabel Perekaman Live Photo (Video Pendek tiap Pose)
+const livePhotos = ref([]);
+let mediaRecorder = null;
+let recordedChunks = [];
+
 // State Filter Warna
 const selectedFilter = ref("normal");
 const filterOptions = [
@@ -61,7 +66,7 @@ const initCameraAndAssets = async () => {
         const img = new Image();
         img.crossOrigin = "anonymous";
         img.src = props.frame.overlay_path;
-        await new Promise((resolve, reject) => {
+        await new Promise((resolve) => {
             img.onload = () => {
                 overlayImage.value = img;
                 resolve();
@@ -181,7 +186,63 @@ const renderFrameCanvas = () => {
     }
 };
 
-// 4. Jepret Foto dari Video
+// 4. Fungsi Perekaman Live Photo (WebM)
+const getSupportedMimeType = () => {
+    const types = [
+        "video/webm;codecs=vp9",
+        "video/webm;codecs=vp8",
+        "video/webm",
+        "video/mp4",
+    ];
+    return types.find((t) => MediaRecorder.isTypeSupported(t)) || "";
+};
+
+const startLivePhotoRecording = (mediaStream) => {
+    if (!mediaStream || typeof MediaRecorder === "undefined") return;
+    recordedChunks = [];
+
+    try {
+        const mimeType = getSupportedMimeType();
+        mediaRecorder = mimeType
+            ? new MediaRecorder(mediaStream, { mimeType })
+            : new MediaRecorder(mediaStream);
+
+        mediaRecorder.ondataavailable = (event) => {
+            if (event.data && event.data.size > 0) {
+                recordedChunks.push(event.data);
+            }
+        };
+
+        mediaRecorder.start();
+    } catch (err) {
+        console.warn("Gagal memulai rekaman Live Photo:", err);
+    }
+};
+
+const stopLivePhotoRecording = (poseIndex) => {
+    return new Promise((resolve) => {
+        if (!mediaRecorder || mediaRecorder.state === "inactive") {
+            resolve();
+            return;
+        }
+
+        mediaRecorder.onstop = () => {
+            const mimeType = mediaRecorder.mimeType || "video/webm";
+            const blob = new Blob(recordedChunks, { type: mimeType });
+            // Buat objek File agar diterima oleh validasi file Laravel
+            const ext = mimeType.includes("mp4") ? "mp4" : "webm";
+            const file = new File([blob], `live_pose_${poseIndex + 1}.${ext}`, {
+                type: mimeType,
+            });
+            livePhotos.value[poseIndex] = file;
+            resolve();
+        };
+
+        mediaRecorder.stop();
+    });
+};
+
+// 5. Jepret Foto dari Video
 const captureCurrentPose = () => {
     const video = videoRef.value;
     const offscreenCanvas = document.createElement("canvas");
@@ -202,10 +263,12 @@ const captureCurrentPose = () => {
     };
 };
 
-// 5. Urutan Hitung Mundur Otomatis
+// 6. Urutan Hitung Mundur Otomatis + Perekaman Live Photo
 const startCaptureSequence = async () => {
     isSequenceRunning.value = true;
+    isFinished.value = false;
     capturedPhotos.value = [];
+    livePhotos.value = [];
     renderFrameCanvas();
 
     for (let pose = 1; pose <= totalPoses; pose++) {
@@ -214,14 +277,24 @@ const startCaptureSequence = async () => {
         // Hitung mundur 4.. 3.. 2.. 1..
         for (let sec = 4; sec > 0; sec--) {
             countdown.value = sec;
+
+            // Mulai merekam Live Photo 2 detik sebelum kamera memotret
+            if (sec === 2 && stream.value) {
+                startLivePhotoRecording(stream.value);
+            }
+
             await new Promise((r) => setTimeout(r, 1000));
         }
 
         countdown.value = 0;
         captureCurrentPose();
 
+        // Rekam tambahan 400ms setelah jepret agar gerakan akhir tertangkap halus, lalu hentikan
+        await new Promise((r) => setTimeout(r, 400));
+        await stopLivePhotoRecording(pose - 1);
+
         if (pose < totalPoses) {
-            await new Promise((r) => setTimeout(r, 1800));
+            await new Promise((r) => setTimeout(r, 1400));
         }
     }
 
@@ -229,16 +302,17 @@ const startCaptureSequence = async () => {
     isFinished.value = true;
 };
 
-// 6. Ganti Filter
+// 7. Ganti Filter
 const changeFilter = (filterKey) => {
     selectedFilter.value = filterKey;
     renderFrameCanvas();
 };
 
-// 7. Unggah Hasil Komposit Akhir
+// 8. Unggah Hasil Komposit Akhir + Foto Mentah + Video Live Photo
 const form = useForm({
     composite_image: "",
     raw_photos: [],
+    live_photos: [],
     filter: "normal",
 });
 
@@ -246,8 +320,12 @@ const submitComposite = () => {
     const canvas = previewCanvasRef.value;
     form.composite_image = canvas.toDataURL("image/jpeg", 0.95);
     form.raw_photos = capturedPhotos.value.map((img) => img.src);
+    form.live_photos = livePhotos.value;
     form.filter = selectedFilter.value;
-    form.post(route("kiosk.session.upload", { session: props.session.id }));
+
+    form.post(route("kiosk.session.upload", { session: props.session.id }), {
+        forceFormData: true, // Wajib agar file Blob/File video terkirim sebagai multipart/form-data
+    });
 };
 
 onMounted(() => {

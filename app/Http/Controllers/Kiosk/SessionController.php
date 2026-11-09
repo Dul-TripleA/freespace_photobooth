@@ -83,4 +83,19 @@ class SessionController extends Controller
         // Lanjut ke halaman kamera (Capture)
         return redirect()->route('kiosk.capture', ['session' => $session->id]);
     }
+
+    public function result(BoothSession $session)
+    {
+        // Muat relasi frame dan media sekaligus
+        $session->load(['frame', 'media']);
+
+        $composite = $session->media->firstWhere('type', 'composite_photo');
+        $livePhotos = $session->media->where('type', 'pose_live')->sortBy('pose_number')->values();
+
+        return Inertia::render('Kiosk/Result', [
+            'session' => $session,
+            'compositePhoto' => $composite ? $composite->file_path : null,
+            'livePhotos' => $livePhotos,
+        ]);
+    }
 }
