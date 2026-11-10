@@ -130,261 +130,308 @@ const deleteFrame = (id) => {
 </script>
 
 <template>
-
     <Head title="Kelola Frame - Admin SelfBooth" />
 
-    <div class="min-h-screen bg-neutral-950 text-white py-10 px-4 sm:px-8">
-        <div class="max-w-6xl mx-auto space-y-10">
-            <!-- Header -->
-            <div class="flex items-center justify-between border-b border-neutral-800 pb-6">
-                <div>
-                    <h1 class="text-3xl font-extrabold tracking-tight">Kelola Frame Photobooth</h1>
-                    <p class="text-sm text-neutral-400 mt-1">
+    <div class="relative min-h-screen overflow-hidden bg-[#050505] px-4 py-6 font-sans text-white sm:px-6 sm:py-8 lg:px-10">
+        <!-- Editorial background grid -->
+        <div
+            class="pointer-events-none fixed inset-0 opacity-[0.035]"
+            style="background-image: linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px); background-size: 100px 100px;"
+        ></div>
+        <div class="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.045),transparent_55%)]"></div>
+
+        <div class="relative z-10 mx-auto w-full max-w-[1600px] space-y-8 lg:space-y-10">
+            <!-- HEADER -->
+            <header class="flex flex-col gap-5 border-b border-neutral-800 pb-5 sm:flex-row sm:items-end sm:justify-between sm:pb-6">
+                <div class="min-w-0">
+                    <div class="mb-3 flex items-center gap-2.5">
+                        <span class="h-2 w-2 bg-white"></span>
+                        <span class="h-2 w-2 bg-white/60"></span>
+                        <span class="h-2 w-2 bg-white/30"></span>
+                        <span class="ml-2 font-mono text-[9px] uppercase tracking-[0.24em] text-neutral-500">SelfBooth / Administration</span>
+                    </div>
+                    <p class="mb-1 font-mono text-[10px] italic tracking-[0.18em] text-neutral-500">01 — Studio configuration</p>
+                    <h1 class="text-3xl font-medium uppercase leading-[0.95] tracking-[-0.055em] sm:text-4xl lg:text-5xl">
+                        Manage <span class="text-neutral-500">Frames</span>
+                    </h1>
+                    <p class="mt-3 max-w-2xl text-xs leading-relaxed text-neutral-400 sm:text-sm">
                         Unggah template PNG transparan dan atur titik koordinat slot foto secara visual.
                     </p>
                 </div>
-                <a href="/"
-                    class="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-sm font-semibold rounded-xl transition">
-                    ← Kembali ke Kiosk
+
+                <a
+                    href="/"
+                    class="group inline-flex shrink-0 items-center justify-between gap-8 border border-neutral-700 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-300 transition hover:border-white hover:bg-white hover:text-black"
+                >
+                    <span>Kembali ke Kiosk</span>
+                    <span class="text-base transition-transform group-hover:-translate-x-1">←</span>
                 </a>
-            </div>
+            </header>
 
-            <!-- Form Tambah Frame & Live Preview -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                <!-- Kolom Kiri: Form Input (7 Kolom) -->
-                <form @submit.prevent="submitForm"
-                    class="lg:col-span-7 bg-neutral-900 border border-neutral-800 rounded-2xl p-6 space-y-6 shadow-xl">
-                    <h2 class="text-xl font-bold">Tambah Frame Baru</h2>
-
-                    <div class="space-y-4">
+            <!-- FORM + VISUAL PREVIEW -->
+            <div class="grid grid-cols-1 items-start gap-5 xl:grid-cols-12 xl:gap-6">
+                <!-- FORM PANEL -->
+                <form
+                    @submit.prevent="submitForm"
+                    class="space-y-6 border border-neutral-800 bg-[#090909] p-4 shadow-[0_20px_70px_rgba(0,0,0,0.3)] sm:p-6 xl:col-span-7"
+                >
+                    <div class="flex items-end justify-between gap-4 border-b border-neutral-800 pb-4">
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-2">
-                                Nama Frame
-                            </label>
-                            <input v-model="form.name" type="text" required placeholder="Contoh: Cinema Ticket 6 Pose"
-                                class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-white focus:border-amber-500 focus:outline-none" />
+                            <p class="font-mono text-[9px] uppercase tracking-[0.22em] text-neutral-500">02 / New asset</p>
+                            <h2 class="mt-1 text-xl font-medium uppercase tracking-[-0.04em] sm:text-2xl">Tambah Frame Baru</h2>
+                        </div>
+                        <span class="font-mono text-[10px] text-neutral-600">PNG / CONFIG</span>
+                    </div>
+
+                    <div class="space-y-5">
+                        <!-- NAME -->
+                        <div class="space-y-2">
+                            <label class="block font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">01 / Nama Frame</label>
+                            <input
+                                v-model="form.name"
+                                type="text"
+                                required
+                                placeholder="Contoh: Cinema Ticket 6 Pose"
+                                class="w-full border border-neutral-800 bg-[#050505] px-4 py-3 text-sm text-white placeholder:text-neutral-700 focus:border-white focus:outline-none focus:ring-1 focus:ring-white/20"
+                            />
                         </div>
 
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-2">
-                                File Frame Overlay (Wajib PNG Transparan)
+                        <!-- IMAGE -->
+                        <div class="space-y-2">
+                            <label class="block font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">02 / File Frame Overlay</label>
+                            <label class="group flex cursor-pointer flex-col gap-2 border border-dashed border-neutral-700 bg-[#050505] px-4 py-4 transition hover:border-neutral-400 hover:bg-neutral-950 sm:flex-row sm:items-center sm:justify-between">
+                                <span class="flex items-center gap-3">
+                                    <span class="flex h-9 w-9 items-center justify-center border border-neutral-800 text-lg text-neutral-400">＋</span>
+                                    <span>
+                                        <span class="block text-xs font-medium text-neutral-200">Pilih file PNG</span>
+                                        <span class="mt-1 block font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-600">Wajib menggunakan PNG transparan</span>
+                                    </span>
+                                </span>
+                                <span class="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500 group-hover:text-white">Browse file ↗</span>
+                                <input type="file" accept="image/png" required @change="handleFileChange" class="sr-only" />
                             </label>
-                            <input type="file" accept="image/png" required @change="handleFileChange"
-                                class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-2.5 text-sm text-neutral-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-amber-500 file:text-neutral-950 file:font-bold hover:file:bg-amber-400" />
                         </div>
 
-                        <!-- Pilihan Jumlah Jepretan Kamera -->
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-2">
-                                Jumlah Jepretan Kamera (Total Capture: {{ form.total_captures }} Pose)
+                        <!-- CAPTURE COUNT -->
+                        <div class="space-y-2">
+                            <label class="block font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">
+                                03 / Jumlah Jepretan — {{ form.total_captures }} Pose
                             </label>
-                            <select v-model.number="form.total_captures"
-                                class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-white focus:border-amber-500 focus:outline-none">
+                            <select
+                                v-model.number="form.total_captures"
+                                class="w-full appearance-none border border-neutral-800 bg-[#050505] px-4 py-3 text-sm text-white focus:border-white focus:outline-none"
+                            >
                                 <option :value="2">2 Kali Capture</option>
                                 <option :value="3">3 Kali Capture</option>
                                 <option :value="4">4 Kali Capture</option>
                                 <option :value="5">5 Kali Capture</option>
                                 <option :value="6">6 Kali Capture</option>
                             </select>
-                            <p class="text-[11px] text-neutral-500 mt-1">
-                                Jumlah kotak koordinat di bawah akan otomatis menyesuaikan dengan pilihan angka di atas.
+                            <p class="font-mono text-[9px] leading-relaxed text-neutral-600">
+                                Jumlah kotak koordinat otomatis menyesuaikan pilihan capture.
                             </p>
                         </div>
 
-                        <!-- Tombol Preset Cepat -->
-                        <div class="flex items-center justify-between mb-3 pt-2">
-                            <label class="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-                                Koordinat Slot ({{ slotList.length }} Kotak Aktif)
-                            </label>
-                            <div class="flex flex-wrap gap-1.5">
-                                <button type="button" @click="applyPreset('2pose')"
-                                    class="text-[11px] px-2 py-1 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-amber-400 font-medium">Preset
-                                    2</button>
-                                <button type="button" @click="applyPreset('3pose')"
-                                    class="text-[11px] px-2 py-1 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-amber-400 font-medium">Preset
-                                    3</button>
-                                <button type="button" @click="applyPreset('4pose')"
-                                    class="text-[11px] px-2 py-1 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-amber-400 font-medium">Preset
-                                    4</button>
-                                <button type="button" @click="applyPreset('6pose')"
-                                    class="text-[11px] px-2 py-1 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-amber-400 font-medium">Preset
-                                    6</button>
+                        <!-- QUICK PRESETS -->
+                        <div class="space-y-3 border-y border-neutral-800 py-4">
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">04 / Koordinat Slot</p>
+                                    <p class="mt-1 text-xs text-neutral-500">{{ slotList.length }} kotak aktif</p>
+                                </div>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <button type="button" @click="applyPreset('2pose')" class="border border-neutral-700 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-300 transition hover:border-white hover:bg-white hover:text-black">Preset 2</button>
+                                    <button type="button" @click="applyPreset('3pose')" class="border border-neutral-700 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-300 transition hover:border-white hover:bg-white hover:text-black">Preset 3</button>
+                                    <button type="button" @click="applyPreset('4pose')" class="border border-neutral-700 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-300 transition hover:border-white hover:bg-white hover:text-black">Preset 4</button>
+                                    <button type="button" @click="applyPreset('6pose')" class="border border-neutral-700 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-300 transition hover:border-white hover:bg-white hover:text-black">Preset 6</button>
+                                </div>
                             </div>
                         </div>
 
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-2">
-                                Kategori Frame
-                            </label>
-                            <select v-model="form.category"
-                                class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-white focus:border-amber-500 focus:outline-none">
+                        <!-- CATEGORY -->
+                        <div class="space-y-2">
+                            <label class="block font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">05 / Kategori Frame</label>
+                            <select
+                                v-model="form.category"
+                                class="w-full appearance-none border border-neutral-800 bg-[#050505] px-4 py-3 text-sm text-white focus:border-white focus:outline-none"
+                            >
                                 <option value="formal">Formal</option>
                                 <option value="pesta">Pesta</option>
                             </select>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label
-                                    class="block text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-2">
-                                    Lebar Kanvas (px)
-                                </label>
-                                <input v-model.number="form.canvas_width" type="number"
-                                    class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-2.5 text-white" />
+                        <!-- CANVAS SIZE -->
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            <div class="space-y-2">
+                                <label class="block font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">06 / Lebar Kanvas (px)</label>
+                                <input v-model.number="form.canvas_width" type="number" class="w-full border border-neutral-800 bg-[#050505] px-4 py-3 text-sm text-white focus:border-white focus:outline-none" />
                             </div>
-                            <div>
-                                <label
-                                    class="block text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-2">
-                                    Tinggi Kanvas (px)
-                                </label>
-                                <input v-model.number="form.canvas_height" type="number"
-                                    class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-2.5 text-white" />
+                            <div class="space-y-2">
+                                <label class="block font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">07 / Tinggi Kanvas (px)</label>
+                                <input v-model.number="form.canvas_height" type="number" class="w-full border border-neutral-800 bg-[#050505] px-4 py-3 text-sm text-white focus:border-white focus:outline-none" />
                             </div>
                         </div>
 
-                        <!-- Preset Cepat -->
-                        <div class="pt-2">
-                            <div class="flex items-center justify-between mb-3">
-                                <label class="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-                                    Koordinat Lubang Pose ({{ slotList.length }} Pose)
-                                </label>
-                                <div class="flex gap-2">
-                                    <button type="button" @click="applyPreset('6pose_grid')"
-                                        class="text-xs px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-amber-400 font-medium">
-                                        Preset 6 Pose (Grid)
-                                    </button>
-                                    <button type="button" @click="applyPreset('3pose_strip')"
-                                        class="text-xs px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-amber-400 font-medium">
-                                        Preset 3 Pose
-                                    </button>
-                                    <button type="button" @click="addSlot"
-                                        class="text-xs px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-lg font-bold">
-                                        + Tambah Slot
-                                    </button>
+                        <!-- SLOT COORDINATES -->
+                        <div class="space-y-3 border-t border-neutral-800 pt-5">
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">08 / Koordinat Lubang Pose</p>
+                                    <p class="mt-1 text-xs text-neutral-500">{{ slotList.length }} pose terdaftar</p>
+                                </div>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <button type="button" @click="applyPreset('6pose_grid')" class="border border-neutral-700 px-2.5 py-2 font-mono text-[9px] uppercase tracking-[0.08em] text-neutral-300 transition hover:border-white hover:bg-white hover:text-black">6 Pose Grid</button>
+                                    <button type="button" @click="applyPreset('3pose_strip')" class="border border-neutral-700 px-2.5 py-2 font-mono text-[9px] uppercase tracking-[0.08em] text-neutral-300 transition hover:border-white hover:bg-white hover:text-black">3 Pose Strip</button>
+                                    <button type="button" @click="addSlot" class="border border-white bg-white px-2.5 py-2 font-mono text-[9px] font-bold uppercase tracking-[0.08em] text-black transition hover:bg-neutral-300">+ Tambah Slot</button>
                                 </div>
                             </div>
 
-                            <div class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-                                <div v-for="(slot, idx) in slotList" :key="idx"
-                                    class="grid grid-cols-12 gap-2 items-center bg-neutral-950 p-2.5 rounded-xl border border-neutral-800 text-xs">
-                                    <span class="col-span-2 font-bold text-amber-400">Pose #{{ idx + 1 }}</span>
-                                    <div class="col-span-2">
-                                        <span class="text-neutral-500 block">X</span>
-                                        <input v-model.number="slot.x" type="number"
-                                            class="w-full bg-neutral-900 border border-neutral-800 rounded px-2 py-1" />
+                            <div class="max-h-80 space-y-2 overflow-y-auto pr-1">
+                                <div
+                                    v-for="(slot, idx) in slotList"
+                                    :key="idx"
+                                    class="grid grid-cols-12 items-end gap-2 border border-neutral-800 bg-[#050505] p-3 text-xs transition hover:border-neutral-600"
+                                >
+                                    <span class="col-span-12 font-mono text-[9px] uppercase tracking-[0.16em] text-white sm:col-span-2">Pose / {{ String(idx + 1).padStart(2, '0') }}</span>
+                                    <div class="col-span-3 sm:col-span-2">
+                                        <label class="mb-1 block font-mono text-[8px] uppercase tracking-wider text-neutral-600">X</label>
+                                        <input v-model.number="slot.x" type="number" class="w-full min-w-0 border border-neutral-800 bg-neutral-900 px-2 py-2 text-xs text-white focus:border-white focus:outline-none" />
                                     </div>
-                                    <div class="col-span-2">
-                                        <span class="text-neutral-500 block">Y</span>
-                                        <input v-model.number="slot.y" type="number"
-                                            class="w-full bg-neutral-900 border border-neutral-800 rounded px-2 py-1" />
+                                    <div class="col-span-3 sm:col-span-2">
+                                        <label class="mb-1 block font-mono text-[8px] uppercase tracking-wider text-neutral-600">Y</label>
+                                        <input v-model.number="slot.y" type="number" class="w-full min-w-0 border border-neutral-800 bg-neutral-900 px-2 py-2 text-xs text-white focus:border-white focus:outline-none" />
                                     </div>
-                                    <div class="col-span-3">
-                                        <span class="text-neutral-500 block">Width</span>
-                                        <input v-model.number="slot.width" type="number"
-                                            class="w-full bg-neutral-900 border border-neutral-800 rounded px-2 py-1" />
+                                    <div class="col-span-3 sm:col-span-3">
+                                        <label class="mb-1 block font-mono text-[8px] uppercase tracking-wider text-neutral-600">Width</label>
+                                        <input v-model.number="slot.width" type="number" class="w-full min-w-0 border border-neutral-800 bg-neutral-900 px-2 py-2 text-xs text-white focus:border-white focus:outline-none" />
                                     </div>
-                                    <div class="col-span-2">
-                                        <span class="text-neutral-500 block">Height</span>
-                                        <input v-model.number="slot.height" type="number"
-                                            class="w-full bg-neutral-900 border border-neutral-800 rounded px-2 py-1" />
+                                    <div class="col-span-2 sm:col-span-2">
+                                        <label class="mb-1 block font-mono text-[8px] uppercase tracking-wider text-neutral-600">Height</label>
+                                        <input v-model.number="slot.height" type="number" class="w-full min-w-0 border border-neutral-800 bg-neutral-900 px-2 py-2 text-xs text-white focus:border-white focus:outline-none" />
                                     </div>
-                                    <button type="button" @click="removeSlot(idx)"
-                                        class="col-span-1 text-red-400 hover:text-red-300 font-bold text-center mt-3">
-                                        ✕
-                                    </button>
+                                    <button type="button" @click="removeSlot(idx)" class="col-span-1 border border-neutral-800 py-2 text-center font-mono text-xs text-neutral-500 transition hover:border-red-500 hover:bg-red-500/10 hover:text-red-400">×</button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <button type="submit" :disabled="form.processing"
-                        class="w-full py-3.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-neutral-950 font-extrabold rounded-xl transition shadow-lg">
-                        {{ form.processing ? "Menyimpan..." : "Simpan Frame Baru" }}
+                    <!-- SUBMIT -->
+                    <button
+                        type="submit"
+                        :disabled="form.processing"
+                        class="group flex w-full items-center justify-between border border-white bg-white px-5 py-4 text-left text-black transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        <span>
+                            <span class="block font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-600">Save configuration</span>
+                            <span class="mt-1 block text-sm font-bold uppercase tracking-[0.08em]">{{ form.processing ? "Menyimpan..." : "Simpan Frame Baru" }}</span>
+                        </span>
+                        <span class="text-xl transition-transform group-hover:translate-x-1">→</span>
                     </button>
                 </form>
 
-                <!-- Kolom Kanan: Live Visual Preview & Download Template Guide (5 Kolom) -->
-                <div
-                    class="lg:col-span-5 bg-neutral-900 border border-neutral-800 rounded-2xl p-6 flex flex-col items-center shadow-xl">
-                    <div class="w-full flex items-center justify-between mb-4">
-                        <h2 class="text-sm font-bold uppercase tracking-wider text-neutral-400">
-                            Pratinjau Posisi Slot Foto
-                        </h2>
-                        <span
-                            class="text-xs font-mono text-neutral-400 bg-neutral-950 px-2.5 py-1 rounded-md border border-neutral-800">
+                <!-- VISUAL PREVIEW PANEL -->
+                <aside class="flex min-w-0 flex-col border border-neutral-800 bg-[#090909] p-4 shadow-[0_20px_70px_rgba(0,0,0,0.3)] sm:p-6 xl:col-span-5">
+                    <div class="mb-5 flex items-start justify-between gap-3 border-b border-neutral-800 pb-4">
+                        <div>
+                            <p class="font-mono text-[9px] uppercase tracking-[0.22em] text-neutral-500">03 / Layout mapping</p>
+                            <h2 class="mt-1 text-xl font-medium uppercase tracking-[-0.04em] sm:text-2xl">Pratinjau Slot</h2>
+                        </div>
+                        <span class="border border-neutral-700 px-2 py-1 font-mono text-[9px] tabular-nums text-neutral-400">
                             {{ form.canvas_width }} × {{ form.canvas_height }} px
                         </span>
                     </div>
 
-                    <div class="relative w-full max-w-[320px] bg-neutral-950 border border-neutral-800 rounded-lg overflow-hidden shadow-inner"
-                        :style="{ aspectRatio: `${form.canvas_width} / ${form.canvas_height}` }">
-                        <!-- Kotak Indikator Slot Pose -->
-                        <div v-for="(slot, index) in slotList" :key="index"
-                            class="absolute bg-emerald-500/30 border-2 border-emerald-400 flex flex-col items-center justify-center text-xs font-extrabold text-white shadow"
+                    <div class="relative mx-auto w-full max-w-[340px] overflow-hidden border border-neutral-700 bg-[#050505] shadow-[0_18px_55px_rgba(0,0,0,0.55)]" :style="{ aspectRatio: `${form.canvas_width} / ${form.canvas_height}` }">
+                        <div class="pointer-events-none absolute inset-0 opacity-[0.08]" style="background-image: linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px); background-size: 24px 24px;"></div>
+
+                        <!-- Slot position indicators -->
+                        <div
+                            v-for="(slot, index) in slotList"
+                            :key="index"
+                            class="absolute flex flex-col items-center justify-center border border-white bg-white/15 text-center text-[9px] font-bold text-white shadow-[0_0_18px_rgba(255,255,255,0.08)] sm:text-xs"
                             :style="{
                                 left: `${(slot.x / form.canvas_width) * 100}%`,
                                 top: `${(slot.y / form.canvas_height) * 100}%`,
                                 width: `${(slot.width / form.canvas_width) * 100}%`,
                                 height: `${(slot.height / form.canvas_height) * 100}%`,
-                            }">
-                            <span>Pose #{{ index + 1 }}</span>
-                            <span class="text-[10px] font-mono text-emerald-200 font-normal">
-                                {{ slot.width }}×{{ slot.height }}
-                            </span>
+                            }"
+                        >
+                            <span class="font-mono uppercase tracking-[0.12em]">Pose #{{ index + 1 }}</span>
+                            <span class="mt-1 font-mono text-[8px] font-normal text-neutral-300 sm:text-[9px]">{{ slot.width }} × {{ slot.height }}</span>
                         </div>
 
-                        <!-- Gambar PNG Frame di Atasnya -->
-                        <img v-if="previewImage" :src="previewImage" alt="Preview Frame"
-                            class="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" />
+                        <!-- PNG frame overlay -->
+                        <img v-if="previewImage" :src="previewImage" alt="Preview Frame" class="pointer-events-none absolute inset-0 z-10 h-full w-full object-contain" />
+
+                        <div v-if="!previewImage" class="pointer-events-none absolute inset-0 z-20 flex items-end justify-center p-3">
+                            <span class="font-mono text-[8px] uppercase tracking-[0.18em] text-neutral-600">Overlay preview / awaiting PNG</span>
+                        </div>
                     </div>
 
-                    <!-- Tombol Download Template Guide untuk Photoshop / Canva -->
-                    <button type="button" @click="downloadTemplateGuide"
-                        class="mt-5 w-full py-3 px-4 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 font-bold text-sm rounded-xl transition flex items-center justify-center gap-2 shadow">
-                        <span>📥</span> Unduh Template Guide ({{ form.canvas_width }}×{{ form.canvas_height }} PNG)
-                    </button>
-
-                    <p class="text-xs text-neutral-500 mt-3 text-center leading-relaxed">
-                        Unduh gambar panduan di atas lalu masukkan ke layer paling bawah di <strong>Photoshop / Canva /
-                            Figma</strong>. Lubangi area kotak hijau sebelum mengekspor desain Anda ke PNG Transparan.
-                    </p>
-                </div>
+                    <div class="mt-5 border-t border-neutral-800 pt-4">
+                        <button
+                            type="button"
+                            @click="downloadTemplateGuide"
+                            class="group flex w-full items-center justify-between border border-neutral-700 px-4 py-3 text-left transition hover:border-white hover:bg-white hover:text-black"
+                        >
+                            <span>
+                                <span class="block font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500 group-hover:text-neutral-600">Template guide</span>
+                                <span class="mt-1 block text-xs font-semibold uppercase tracking-[0.04em]">Unduh Guide PNG</span>
+                                <span class="mt-1 block font-mono text-[9px] text-neutral-500 group-hover:text-neutral-600">{{ form.canvas_width }} × {{ form.canvas_height }} px</span>
+                            </span>
+                            <span class="text-xl">↓</span>
+                        </button>
+                        <p class="mt-3 text-[10px] leading-relaxed text-neutral-500">
+                            Masukkan gambar panduan ke layer paling bawah di <strong class="font-medium text-neutral-300">Photoshop / Canva / Figma</strong>. Lubangi area kotak sebelum mengekspor desain sebagai PNG transparan.
+                        </p>
+                    </div>
+                </aside>
             </div>
 
-            <!-- Daftar Frame yang Sudah Ada -->
-            <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-xl">
-                <h2 class="text-xl font-bold mb-6">Daftar Frame Aktif ({{ frames.length }})</h2>
+            <!-- FRAME LIBRARY -->
+            <section class="border border-neutral-800 bg-[#090909] p-4 shadow-[0_20px_70px_rgba(0,0,0,0.3)] sm:p-6">
+                <div class="mb-5 flex flex-col gap-2 border-b border-neutral-800 pb-4 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <p class="font-mono text-[9px] uppercase tracking-[0.22em] text-neutral-500">04 / Asset library</p>
+                        <h2 class="mt-1 text-xl font-medium uppercase tracking-[-0.04em] sm:text-2xl">Daftar Frame Aktif</h2>
+                    </div>
+                    <span class="font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-500">{{ frames.length }} frame tersimpan</span>
+                </div>
 
-                <div v-if="frames.length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                    <div v-for="frame in frames" :key="frame.id"
-                        class="bg-neutral-950 border border-neutral-800 rounded-xl p-4 flex flex-col justify-between">
-                        <div>
-                            <div
-                                class="aspect-[2/3] bg-neutral-900 rounded-lg overflow-hidden mb-3 flex items-center justify-center p-2">
-                                <img v-if="frame.preview_url" :src="frame.preview_url" :alt="frame.name"
-                                    class="max-h-full w-auto object-contain" />
+                <div v-if="frames.length > 0" class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+                    <article v-for="frame in frames" :key="frame.id" class="group flex min-w-0 flex-col justify-between border border-neutral-800 bg-[#050505] transition hover:border-neutral-500">
+                        <div class="p-3 sm:p-4">
+                            <div class="relative mb-3 flex aspect-[2/3] items-center justify-center overflow-hidden border border-neutral-800 bg-neutral-950 p-2">
+                                <img v-if="frame.preview_url" :src="frame.preview_url" :alt="frame.name" class="max-h-full w-auto object-contain transition duration-500 group-hover:scale-[1.025]" />
+                                <span class="absolute left-2 top-2 font-mono text-[8px] uppercase tracking-[0.14em] text-neutral-600">Frame / {{ frame.id }}</span>
                             </div>
-                            <h3 class="font-bold text-sm truncate">{{ frame.name || frame.title }}</h3>
-                            <p class="text-xs text-neutral-400 mt-0.5">
+                            <h3 class="truncate text-xs font-semibold uppercase tracking-[0.04em] text-neutral-100">{{ frame.name || frame.title }}</h3>
+                            <p class="mt-1 font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-500">
                                 {{ frame.pose_count || frame.total_poses || 6 }} Pose
                             </p>
                         </div>
 
-                        <div class="mt-4 flex flex-col gap-2">
-                            <a v-if="frame.preview_url" :href="frame.preview_url" target="_blank"
-                                :download="`${frame.name || 'frame'}.png`"
-                                class="w-full py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-bold text-center rounded-lg transition">
-                                Unduh PNG Asli
+                        <div class="flex flex-col border-t border-neutral-800">
+                            <a v-if="frame.preview_url" :href="frame.preview_url" target="_blank" :download="`${frame.name || 'frame'}.png`" class="flex items-center justify-between px-3 py-2.5 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-400 transition hover:bg-white hover:text-black sm:px-4">
+                                <span>Unduh PNG Asli</span><span>↗</span>
                             </a>
-                            <button @click="deleteFrame(frame.id)"
-                                class="w-full py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold rounded-lg border border-red-500/20 transition">
-                                Hapus Frame
+                            <button @click="deleteFrame(frame.id)" class="flex items-center justify-between border-t border-neutral-800 px-3 py-2.5 text-left font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-500 transition hover:bg-red-500/10 hover:text-red-400 sm:px-4">
+                                <span>Hapus Frame</span><span>×</span>
                             </button>
                         </div>
-                    </div>
+                    </article>
                 </div>
-                <p v-else class="text-sm text-neutral-500">Belum ada frame yang tersimpan.</p>
-            </div>
+
+                <div v-else class="flex min-h-36 flex-col items-center justify-center border border-dashed border-neutral-800 px-4 py-8 text-center">
+                    <span class="font-mono text-2xl text-neutral-700">—</span>
+                    <p class="mt-2 text-xs text-neutral-500">Belum ada frame yang tersimpan.</p>
+                </div>
+            </section>
+
+            <footer class="flex flex-col gap-2 border-t border-neutral-800 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                <span class="font-mono text-[8px] uppercase tracking-[0.2em] text-neutral-600">SelfBooth / Frame management</span>
+                <span class="font-mono text-[8px] uppercase tracking-[0.2em] text-neutral-600">Urban editorial interface</span>
+            </footer>
         </div>
     </div>
 </template>

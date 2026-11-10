@@ -32,267 +32,161 @@ const submitFrame = () => {
 <template>
     <Head title="Pilih Frame" />
 
+    <!-- Container Utama: Terkunci pas di satu layar penuh tanpa scroll -->
     <div
-        class="min-h-screen bg-neutral-950 text-white flex flex-col items-center px-4 py-6 md:px-8 md:py-8 font-sans relative overflow-hidden"
-    >
-
-        <!-- Background Glow -->
-        <div
-            class="absolute -top-48 -left-48 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[120px] pointer-events-none"
-        ></div>
-
-        <div
-            class="absolute -bottom-48 -right-48 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[120px] pointer-events-none"
-        ></div>
-
-        <!-- Background Grid -->
-        <div
-            class="absolute inset-0 opacity-[0.025] pointer-events-none"
-            style="
-                background-image:
-                    linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px);
-                background-size: 45px 45px;
-            "
-        ></div>
-
-
-        <div class="relative z-10 w-full flex flex-col items-center">
-
-            <!-- Header -->
-            <div class="text-center mb-7 mt-2 md:mt-3">
-
-                <!-- Badge -->
-                <div
-                    class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-400 text-[10px] sm:text-xs font-bold uppercase tracking-[0.22em] mb-4"
-                >
-                    <span
-                        class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"
-                    ></span>
-
-                    Choose Your Frame
-                </div>
-
-                <h1
-                    class="text-2xl md:text-4xl font-black mb-2 tracking-tight text-white"
-                >
-                    Pilih Frame Foto Anda
-                </h1>
-
-                <p
-                    class="text-xs md:text-sm text-neutral-400 max-w-xl mx-auto leading-relaxed"
-                >
-                    Pilih tata letak frame yang akan digunakan pada hasil foto
-                    Anda.
-                </p>
-
-            </div>
-
-
-            <!-- Filter Kategori -->
-            <div
-                class="flex flex-wrap justify-center gap-2 mb-8 p-1.5 rounded-2xl bg-neutral-900/80 border border-white/10 backdrop-blur-xl"
-            >
-
-                <button
-                    v-for="cat in categories"
-                    :key="cat"
-                    @click="activeCategory = cat"
-                    :class="[
-                        'px-5 py-2.5 rounded-xl font-bold text-xs md:text-sm capitalize transition-all duration-200',
-                        activeCategory === cat
-                            ? 'bg-amber-400 text-neutral-950 shadow-lg shadow-amber-400/10'
-                            : 'text-neutral-500 hover:text-white hover:bg-white/5'
-                    ]"
-                >
-                    {{ cat }}
-                </button>
-
-            </div>
-
-
-            <!-- Grid Frame -->
-            <div
-                class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 max-w-6xl w-full flex-grow content-start px-1 md:px-2"
-            >
-
-                <div
-                    v-for="frame in filteredFrames"
-                    :key="frame.id"
-                    @click="selectFrame(frame.id)"
-                    :class="[
-                        'relative bg-neutral-900/80 backdrop-blur-xl rounded-2xl overflow-hidden cursor-pointer border transition-all duration-300 group',
-                        form.frame_id === frame.id
-                            ? 'border-amber-400 shadow-[0_10px_40px_rgba(251,191,36,0.16)] -translate-y-1'
-                            : 'border-white/10 hover:border-amber-400/40 hover:-translate-y-1'
-                    ]"
-                >
-
-                    <!-- Selected Glow -->
-                    <div
-                        v-if="form.frame_id === frame.id"
-                        class="absolute inset-0 z-10 pointer-events-none rounded-2xl ring-1 ring-inset ring-amber-400/30"
-                    ></div>
-
-
-                    <!-- Wrapper Gambar Frame -->
-                    <div
-                        class="aspect-[2/3] relative bg-neutral-800 w-full overflow-hidden flex items-center justify-center"
-                    >
-
-                        <!-- Background sebelum image -->
-                        <div
-                            class="absolute inset-0 bg-gradient-to-br from-neutral-700 via-neutral-800 to-neutral-950"
-                        ></div>
-
-
-                        <!-- Gambar Frame -->
-                        <img
-                            :src="frame.overlay_path"
-                            :alt="frame.name"
-                            class="absolute inset-0 w-full h-full object-cover z-10 transition-transform duration-500 group-hover:scale-[1.035]"
-                            @error="$event.target.style.display = 'none'"
-                        />
-
-
-                        <!-- Overlay Gradient -->
-                        <div
-                            class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/70 to-transparent z-15 pointer-events-none"
-                        ></div>
-
-
-                        <!-- Indikator Total Pose -->
-                        <div
-                            class="absolute bottom-3 left-3 z-20 bg-black/70 backdrop-blur-md text-white px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold border border-white/10 shadow-lg flex items-center gap-1.5"
-                        >
-                            <span
-                                class="w-1.5 h-1.5 rounded-full bg-amber-400"
-                            ></span>
-
-                            {{ frame.total_poses }} Pose
-                        </div>
-
-
-                        <!-- Hover Indicator -->
-                        <div
-                            class="absolute inset-0 z-20 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-all duration-300 pointer-events-none"
-                        >
-                            <div
-                                class="opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all duration-300 px-4 py-2 rounded-full bg-white/90 text-neutral-900 text-[10px] font-black uppercase tracking-wider shadow-xl"
-                            >
-                                Pilih Frame
-                            </div>
-                        </div>
-
-                    </div>
-
-
-                    <!-- Nama Frame -->
-                    <div
-                        class="p-3.5 bg-neutral-900/90 text-center relative z-20 border-t border-white/5"
-                    >
-
-                        <h3
-                            class="font-bold text-neutral-200 text-xs md:text-sm truncate"
-                        >
-                            {{ frame.name }}
-                        </h3>
-
-                        <p
-                            class="text-[9px] text-neutral-600 uppercase tracking-wider mt-1"
-                        >
-                            {{ frame.category }}
-                        </p>
-
-                    </div>
-
-
-                    <!-- Indikator Centang -->
-                    <div
-                        v-if="form.frame_id === frame.id"
-                        class="absolute top-3 right-3 z-30 w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center shadow-lg shadow-amber-500/20"
-                    >
-
-                        <svg
-                            class="w-4 h-4 md:w-5 md:h-5 text-neutral-950"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="3"
-                                d="M5 13l4 4L19 7"
-                            ></path>
-                        </svg>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- Tombol Lanjut -->
-            <div
-                class="mt-7 h-20 w-full max-w-6xl flex justify-end items-center px-1 md:px-2"
-            >
-
-                <button
-                    v-if="form.frame_id"
-                    @click="submitFrame"
-                    :disabled="form.processing"
-                    class="group bg-amber-400 text-neutral-950 px-7 py-3.5 md:px-10 md:py-4 rounded-2xl font-black text-sm md:text-base hover:bg-amber-300 hover:-translate-y-0.5 transition-all duration-200 shadow-[0_10px_40px_rgba(251,191,36,0.15)] hover:shadow-[0_10px_45px_rgba(251,191,36,0.25)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center gap-3"
-                >
-
-                    <span>
-                        {{ form.processing ? 'Menyiapkan Kamera...' : 'Lanjut ke Kamera' }}
-                    </span>
-
-                    <svg
-                        v-if="!form.processing"
-                        class="w-5 h-5 md:w-6 md:h-6 transition-transform duration-200 group-hover:translate-x-1"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2.5"
-                            d="M14 5l7 7m0 0l-7 7m7-7H3"
-                        ></path>
-                    </svg>
-
-                    <!-- Loading -->
-                    <svg
-                        v-if="form.processing"
-                        class="w-5 h-5 animate-spin"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                    >
-                        <circle
-                            class="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            stroke-width="3"
-                        ></circle>
-
-                        <path
-                            class="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z"
-                        ></path>
-                    </svg>
-
-                </button>
-
-            </div>
-
+        class="relative h-screen w-screen bg-[#0a0a0a] text-white flex flex-col justify-between px-6 py-3 sm:px-10 sm:py-4 select-none overflow-hidden font-sans">
+        <!-- 1. BACKGROUND AMBIENT PHOTOGRAPHY & FILM GRAIN -->
+        <div class="fixed inset-0 pointer-events-none z-0">
+            <img src="https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=1920&q=80"
+                alt="Editorial Frame Studio Background"
+                class="w-full h-full object-cover object-center opacity-[0.12] grayscale contrast-125 scale-105" />
+            <div class="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/90 via-[#0a0a0a]/80 to-[#0a0a0a]"></div>
+            <div class="absolute inset-0 opacity-[0.04]" style="
+                    background-image:
+                        linear-gradient(to right, #ffffff 1px, transparent 1px),
+                        linear-gradient(to bottom, #ffffff 1px, transparent 1px);
+                    background-size: 120px 120px;
+                "></div>
         </div>
 
+        <!-- 2. TOP NAVIGATION BAR -->
+        <header
+            class="relative z-10 w-full max-w-7xl mx-auto flex items-center justify-between pb-2 border-b border-neutral-800/80 shrink-0">
+            <div class="flex items-center gap-2.5">
+                <span class="w-3 h-3 rounded-full bg-white inline-block"></span>
+                <span class="w-3 h-3 rounded-full bg-white inline-block"></span>
+                <span class="w-3 h-3 rounded-full bg-white inline-block"></span>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <span class="font-mono text-xs uppercase tracking-[0.2em] text-neutral-400">
+                    STEP 02 // FRAME SELECTION
+                </span>
+            </div>
+        </header>
+
+        <!-- 3. MAIN EDITORIAL SECTION -->
+        <main class="relative z-10 w-full max-w-7xl mx-auto my-1.5 flex-grow flex flex-col min-h-0">
+            <!-- Hero Title & Category Filter Tabs -->
+            <div class="flex flex-col lg:flex-row lg:items-end justify-between mb-3 gap-3 shrink-0">
+                <div>
+                    <p class="font-mono italic text-xs text-neutral-400 tracking-wider mb-0.5">
+                        Curated Studio Templates
+                    </p>
+                    <h1 class="text-3xl sm:text-4xl font-normal uppercase tracking-tight leading-none">
+                        SELECT FRAME
+                    </h1>
+                </div>
+
+                <!-- Filter Kategori -->
+                <div class="flex flex-wrap gap-1.5 border border-neutral-700 p-1 bg-black/60 backdrop-blur-md">
+                    <button v-for="cat in categories" :key="cat" @click="activeCategory = cat" :class="[
+                        'px-3.5 py-1 font-mono text-xs uppercase tracking-widest transition-colors',
+                        activeCategory === cat
+                            ? 'bg-white text-black font-bold'
+                            : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
+                    ]">
+                        {{ cat }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Exposed Hairline Grid (Daftar Frame dengan Proporsi 3/4 & Scroll Internal) -->
+            <div
+                class="flex-grow overflow-y-auto pr-1 min-h-0 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 border-t border-l border-neutral-700 bg-[#0a0a0a]/85 backdrop-blur-sm">
+
+                <div v-for="(frame, index) in filteredFrames" :key="frame.id" @click="selectFrame(frame.id)" :class="[
+                    'group relative border-r border-b border-neutral-700 flex flex-col justify-between cursor-pointer transition-colors duration-300',
+                    form.frame_id === frame.id
+                        ? 'bg-neutral-900/95 ring-1 ring-inset ring-white'
+                        : 'bg-[#0a0a0a]/90 hover:bg-neutral-950',
+                ]">
+                    <!-- Pratinjau Gambar Frame (Tinggi diset tepat 75% / 3/4 dari card & width proporsional) -->
+                    <div
+                        class="relative h-[72%] w-full overflow-hidden border-b border-neutral-700 bg-neutral-950 flex items-center justify-center p-3">
+                        <img :src="frame.overlay_path" :alt="frame.name"
+                            class="max-h-full max-w-full object-contain filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)] transition-transform duration-500 group-hover:scale-105"
+                            @error="$event.target.style.display = 'none'" />
+
+                        <!-- Badge Status & Pose di Atas -->
+                        <div
+                            class="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none">
+                            <span
+                                class="font-mono text-[9px] uppercase tracking-[0.2em] bg-black/80 backdrop-blur-md px-2 py-0.5 border border-neutral-700 text-neutral-300">
+                                {{ frame.category || 'GENERAL' }}
+                            </span>
+                            <span class="px-2 py-0.5 text-[9px] font-mono uppercase tracking-widest border" :class="form.frame_id === frame.id
+                                    ? 'border-white bg-white text-black font-bold'
+                                    : 'border-neutral-700 bg-black/80 text-neutral-400'
+                                ">
+                                {{ form.frame_id === frame.id ? 'SELECTED' : `${frame.total_poses} POSES` }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Informasi & Aksi Frame (Sisa 25% ruang bawah) -->
+                    <div class="px-4 py-2.5 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-normal uppercase tracking-wide text-sm text-white truncate mb-0.5">
+                                {{ frame.name }}
+                            </h3>
+                            <p class="font-mono text-[9px] text-neutral-500 uppercase tracking-widest">
+                                DIMENSION: {{ frame.canvas_width || 1200 }} × {{ frame.canvas_height || 1800 }} PX
+                            </p>
+                        </div>
+
+                        <!-- Bottom Action & Index -->
+                        <div class="flex items-end justify-between pt-2 mt-1.5 border-t border-neutral-800/80">
+                            <span :class="[
+                                'inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-mono uppercase tracking-widest border transition-colors',
+                                form.frame_id === frame.id
+                                    ? 'bg-white text-black border-white font-bold'
+                                    : 'border-white/70 text-white group-hover:bg-white group-hover:text-black',
+                            ]">
+                                {{ form.frame_id === frame.id ? 'ACTIVE' : 'SELECT' }} <span>→</span>
+                            </span>
+
+                            <span class="text-2xl font-mono text-neutral-600 leading-none">
+                                {{ String(index + 1).padStart(2, '0') }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Empty State jika tidak ada frame -->
+            <div v-if="filteredFrames.length === 0" class="border border-neutral-700 p-12 text-center bg-black/50">
+                <p class="font-mono text-xs text-neutral-400 uppercase tracking-widest">
+                    Tidak ada frame tersedia dalam kategori ini.
+                </p>
+            </div>
+        </main>
+
+        <!-- 4. BOTTOM ACTION BAR -->
+        <footer class="relative z-10 w-full max-w-7xl mx-auto shrink-0 pt-1">
+            <div
+                class="flex flex-col sm:flex-row items-center justify-between gap-3 border border-neutral-700 p-3 bg-[#0a0a0a]/90 backdrop-blur-md">
+                <div class="font-mono text-xs text-neutral-400">
+                    <span v-if="form.frame_id">
+                        SELECTED FRAME ID:
+                        <strong class="text-white font-mono ml-1">
+                            [ {{ form.frame_id }} ]
+                        </strong>
+                    </span>
+                    <span v-else class="italic font-mono">
+                        Silakan pilih template frame di atas untuk melanjutkan ke sesi kamera...
+                    </span>
+                </div>
+
+                <button v-if="form.frame_id" @click="submitFrame" :disabled="form.processing"
+                    class="w-full sm:w-auto bg-white text-black hover:bg-neutral-200 px-8 py-2.5 font-mono text-xs font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-4 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+                    <span>
+                        {{ form.processing ? "MENYIAPKAN KAMERA..." : "LANJUT KE KAMERA" }}
+                    </span>
+                    <span>→</span>
+                </button>
+            </div>
+        </footer>
     </div>
 </template>
