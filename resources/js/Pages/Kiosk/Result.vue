@@ -56,7 +56,7 @@ const qrCodeSrc = computed(() => {
                         <span class="h-2 w-2 rounded-full bg-white"></span>
                     </div>
                     <span
-                        class="text-[10px] font-semibold uppercase tracking-[0.22em] text-white sm:text-xs sm:tracking-[0.28em]">Selfbooth
+                        class="text-[10px] font-semibold uppercase tracking-[0.22em] text-white sm:text-xs sm:tracking-[0.28em]">Procold
                         Studio</span>
                 </div>
 

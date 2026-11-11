@@ -708,7 +708,7 @@ onBeforeUnmount(() => {
                 </div>
                 <div class="min-w-0 border-l border-neutral-700 pl-3 sm:pl-4">
                     <p class="font-mono text-[9px] leading-none tracking-[0.18em] text-neutral-500 italic sm:text-[10px]">
-                        EXCLUSIVE PHOTO EXPERIENCE
+                        Procold Studio
                     </p>
                     <h1 class="mt-1 truncate text-sm leading-none font-medium tracking-[0.16em] text-white sm:text-base">
                         SELFBOOTH

@@ -76,6 +76,28 @@ const handleFileChange = (e) => {
     reader.readAsDataURL(file);
 };
 
+// Fungsi Penambah dan Pengurang Slot (Jika tombol + Tambah Slot / x diklik)
+const addSlot = () => {
+    const nextPose = slotList.value.length + 1;
+    slotList.value.push({
+        x: 100,
+        y: 100,
+        pose: nextPose,
+        width: 400,
+        height: 400,
+    });
+    form.total_captures = slotList.value.length;
+};
+
+const removeSlot = (index) => {
+    slotList.value.splice(index, 1);
+    // Atur ulang penomoran pose
+    slotList.value.forEach((slot, idx) => {
+        slot.pose = idx + 1;
+    });
+    form.total_captures = slotList.value.length;
+};
+
 // Preset Tombol Cepat
 const applyPreset = (type) => {
     if (type === "2pose") {
@@ -84,7 +106,7 @@ const applyPreset = (type) => {
             { x: 100, y: 200, pose: 1, width: 1000, height: 600 },
             { x: 100, y: 950, pose: 2, width: 1000, height: 600 },
         ];
-    } else if (type === "3pose") {
+    } else if (type === "3pose" || type === "3pose_strip") {
         form.total_captures = 3;
         slotList.value = [
             { x: 100, y: 120, pose: 1, width: 1000, height: 480 },
@@ -99,7 +121,7 @@ const applyPreset = (type) => {
             { x: 80, y: 920, pose: 3, width: 500, height: 700 },
             { x: 620, y: 920, pose: 4, width: 500, height: 700 },
         ];
-    } else if (type === "6pose") {
+    } else if (type === "6pose" || type === "6pose_grid") {
         form.total_captures = 6;
         slotList.value = [
             { x: 60, y: 150, pose: 1, width: 510, height: 450 },
@@ -110,6 +132,52 @@ const applyPreset = (type) => {
             { x: 630, y: 1190, pose: 6, width: 510, height: 450 },
         ];
     }
+};
+
+// ----------------------------------------------------
+// FUNGSI BARU: UNDUH TEMPLATE GUIDE PNG 
+// ----------------------------------------------------
+const downloadTemplateGuide = () => {
+    // 1. Buat elemen canvas sementara
+    const canvas = document.createElement("canvas");
+    canvas.width = form.canvas_width;
+    canvas.height = form.canvas_height;
+    const ctx = canvas.getContext("2d");
+
+    // 2. Isi seluruh background dengan warna gelap (abu-abu tua)
+    ctx.fillStyle = "#1a1a1a";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 3. Tambahkan teks penjelasan di canvas (Opsional agar desainer tahu)
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 40px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("FRAME TEMPLATE GUIDE", canvas.width / 2, 80);
+    ctx.font = "24px sans-serif";
+    ctx.fillText("Area biru di bawah adalah area transparan untuk foto", canvas.width / 2, 130);
+
+    // 4. Gambar kotak-kotak (slot) yang harus dilubangi (pakai warna biru kontras)
+    slotList.value.forEach((slot, index) => {
+        ctx.fillStyle = "#3b82f6"; // Warna biru
+        ctx.fillRect(slot.x, slot.y, slot.width, slot.height);
+
+        // Tambahkan nomor pose di tengah kotak biru
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 60px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(`POSE ${index + 1}`, slot.x + slot.width / 2, slot.y + slot.height / 2);
+    });
+
+    // 5. Ubah canvas menjadi file PNG dan paksa unduh
+    const dataUrl = canvas.toDataURL("image/png");
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = `template_guide_${form.total_captures}pose_${form.canvas_width}x${form.canvas_height}.png`;
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 };
 
 const submitForm = () => {
@@ -133,7 +201,7 @@ const deleteFrame = (id) => {
     <Head title="Kelola Frame - Admin SelfBooth" />
 
     <div class="relative min-h-screen overflow-hidden bg-[#050505] px-4 py-6 font-sans text-white sm:px-6 sm:py-8 lg:px-10">
-        <!-- Editorial background grid -->
+        <!-- Editorial background -->
         <div
             class="pointer-events-none fixed inset-0 opacity-[0.035]"
             style="background-image: linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px); background-size: 100px 100px;"
@@ -199,17 +267,14 @@ const deleteFrame = (id) => {
                         <!-- IMAGE -->
                         <div class="space-y-2">
                             <label class="block font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-400">02 / File Frame Overlay</label>
-                            <label class="group flex cursor-pointer flex-col gap-2 border border-dashed border-neutral-700 bg-[#050505] px-4 py-4 transition hover:border-neutral-400 hover:bg-neutral-950 sm:flex-row sm:items-center sm:justify-between">
-                                <span class="flex items-center gap-3">
-                                    <span class="flex h-9 w-9 items-center justify-center border border-neutral-800 text-lg text-neutral-400">＋</span>
-                                    <span>
-                                        <span class="block text-xs font-medium text-neutral-200">Pilih file PNG</span>
-                                        <span class="mt-1 block font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-600">Wajib menggunakan PNG transparan</span>
-                                    </span>
-                                </span>
-                                <span class="font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-500 group-hover:text-white">Browse file ↗</span>
-                                <input type="file" accept="image/png" required @change="handleFileChange" class="sr-only" />
-                            </label>
+                            <input
+                                type="file"
+                                accept="image/png"
+                                required
+                                @change="handleFileChange"
+                                class="w-full border border-neutral-800 bg-[#050505] px-3 py-2.5 text-xs text-neutral-300 file:mr-4 file:border-0 file:bg-white file:px-3 file:py-2 file:font-mono file:text-[9px] file:uppercase file:tracking-[0.12em] file:text-black hover:file:bg-neutral-300"
+                            />
+                            <p class="font-mono text-[9px] uppercase tracking-[0.12em] text-neutral-600">Wajib menggunakan PNG transparan</p>
                         </div>
 
                         <!-- CAPTURE COUNT -->

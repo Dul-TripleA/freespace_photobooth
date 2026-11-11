@@ -88,7 +88,7 @@ const startSession = () => {
             >
                 <div>
                     <p class="mb-2 font-mono text-[10px] italic tracking-[0.16em] text-neutral-400 sm:text-xs">
-                        Exclusive SelfBooth Studio
+                        Procold Studio
                     </p>
                     <div class="flex flex-wrap items-end gap-x-4 gap-y-1">
                         <h1
