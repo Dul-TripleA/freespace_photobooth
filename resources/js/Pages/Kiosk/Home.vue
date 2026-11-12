@@ -58,7 +58,7 @@ const startSession = () => {
 
             <div class="flex items-center gap-5 sm:gap-8">
                 <a
-                    href="/admin/frames"
+                    href="/admin"
                     class="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-400 transition-colors duration-300 hover:text-white sm:text-xs"
                 >
                     Admin Frames

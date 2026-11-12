@@ -5,6 +5,11 @@ use App\Http\Controllers\Kiosk\SessionController;
 use App\Http\Controllers\Kiosk\MediaUploadController;
 use App\Models\BoothSession;
 use App\Http\Controllers\Public\GalleryController;
+use App\Http\Controllers\Admin\VoucherController;
+
+use App\Models\Frame;
+use App\Models\Voucher;
+use Inertia\Inertia;
 
 Route::prefix('kiosk')->name('kiosk.')->group(function () {
     Route::get('/', [SessionController::class, 'index'])->name('home');
@@ -15,7 +20,7 @@ Route::prefix('kiosk')->name('kiosk.')->group(function () {
 
     Route::get('/session/{session}/capture', function (BoothSession $session) {
         $frame = App\Models\Frame::find($session->frame_id);
-        return Inertia\Inertia::render('Kiosk/Capture', ['session' => $session, 'frame' => $frame]);
+        return Inertia::render('Kiosk/Capture', ['session' => $session, 'frame' => $frame]);
     })->name('capture');
 
     // Endpoint Upload Media
@@ -31,7 +36,7 @@ Route::prefix('kiosk')->name('kiosk.')->group(function () {
     // Pastikan menggunakan kolom token yang ada di tabel booth_sessions (misal gallery_token, session_code, atau id)
     $tokenValue = $session->gallery_token ?? $session->session_code ?? $session->id;
 
-    return Inertia\Inertia::render('Kiosk/Result', [
+    return Inertia::render('Kiosk/Result', [
         'session' => $session,
         'compositePhoto' => $composite ? $composite->file_path : null,
         'livePhotos' => $livePhotos,
@@ -59,7 +64,23 @@ Route::get('/', function () {
     return redirect()->route('kiosk.home');
 });
 
+// Tambahkan rute ini di dalam group middleware admin Anda
+Route::get('/admin', function () {
+    return Inertia::render('Admin/Index', [
+        'stats' => [
+            'frames_count' => Frame::count(),
+            'vouchers_count' => Voucher::count(),
+            // Nanti bisa ditambah session_count, dll
+        ]
+    ]);
+})->name('admin.dashboard');
+
 // Route Kelola Frame untuk Admin
 Route::get('/admin/frames', [\App\Http\Controllers\Admin\FrameController::class, 'index'])->name('admin.frames.index');
 Route::post('/admin/frames', [\App\Http\Controllers\Admin\FrameController::class, 'store'])->name('admin.frames.store');
 Route::delete('/admin/frames/{id}', [\App\Http\Controllers\Admin\FrameController::class, 'destroy'])->name('admin.frames.destroy');
+
+Route::get('/admin/vouchers', [VoucherController::class, 'index'])->name('admin.vouchers.index');
+Route::post('/admin/vouchers', [VoucherController::class, 'store'])->name('admin.vouchers.store');
+Route::delete('/admin/vouchers/{voucher}', [VoucherController::class, 'destroy'])->name('admin.vouchers.destroy');
+Route::patch('/admin/vouchers/{voucher}/toggle', [VoucherController::class, 'toggleActive'])->name('admin.vouchers.toggle');

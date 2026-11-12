@@ -10,4 +10,10 @@ class Frame extends Model
     use HasUuids;
 
     protected $guarded = [];
+
+    // Tambahkan ini di dalam class Frame
+    public function vouchers()
+    {
+        return $this->belongsToMany(Voucher::class);
+    }
 }

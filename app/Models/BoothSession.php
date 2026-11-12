@@ -20,4 +20,9 @@ class BoothSession extends Model
     {
         return $this->hasMany(SessionMedia::class);
     }
+
+    public function voucher()
+    {
+        return $this->belongsTo(Voucher::class);
+    }
 }

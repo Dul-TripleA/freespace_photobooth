@@ -61,6 +61,7 @@ class FrameController extends Controller
             'canvas_width' => (int) $request->canvas_width,
             'canvas_height' => (int) $request->canvas_height,
             'slots_config' => json_encode($normalizedSlots),
+            'is_public' => $request->boolean('is_public'),
             'is_active' => true,
             'created_at' => now(),
             'updated_at' => now(),

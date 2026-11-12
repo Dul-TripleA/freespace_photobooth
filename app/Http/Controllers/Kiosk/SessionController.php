@@ -18,51 +18,65 @@ class SessionController extends Controller
         return Inertia::render('Kiosk/Home');
     }
 
-    // Memproses saat pengunjung mengklik tombol "Mulai"
     public function start(Request $request)
     {
-        $validated = $request->validate([
-            'payment_method' => 'required|in:cashless,voucher,online',
-            'voucher_code' => 'required_if:payment_method,voucher|string|nullable'
+        $request->validate([
+            'payment_method' => 'required|string',
+            'voucher_code' => 'required_if:payment_method,voucher|nullable|string'
         ]);
 
-        // Jika menggunakan voucher, validasi kodenya
-        if ($validated['payment_method'] === 'voucher') {
-            $voucher = Voucher::where('code', $validated['voucher_code'])
+        $voucherId = null;
+
+        if ($request->payment_method === 'voucher') {
+            $voucher = Voucher::where('code', strtoupper($request->voucher_code))
                 ->where('is_active', true)
-                ->where(function($query) {
-                    $query->whereNull('expires_at')
-                          ->orWhere('expires_at', '>', now());
-                })
-                ->whereRaw('used_count < max_uses')
                 ->first();
 
-            if (!$voucher) {
-                return back()->withErrors(['voucher_code' => 'Kode voucher tidak valid atau sudah habis.']);
-            }
+            if (!$voucher) return back()->withErrors(['voucher_code' => 'Kode voucher tidak valid.']);
+            if ($voucher->expires_at && now()->greaterThan($voucher->expires_at)) return back()->withErrors(['voucher_code' => 'Voucher kedaluwarsa.']);
+            if ($voucher->quota !== null && $voucher->used_count >= $voucher->quota) return back()->withErrors(['voucher_code' => 'Kuota voucher habis.']);
 
-            // Tambah hitungan penggunaan voucher
-            $voucher->increment('used_count');
+            $voucherId = $voucher->id;
         }
 
-        // Buat sesi photobooth baru di database
+        // PERBAIKAN: Tambahkan gallery_token di sini
         $session = BoothSession::create([
-            'session_code' => 'SS-' . strtoupper(Str::random(8)),
-            'gallery_token' => hash('sha256', Str::random(40) . time()),
-            'payment_method' => $validated['payment_method'],
-            'payment_status' => $validated['payment_method'] === 'online' ? 'pending' : 'paid',
+            'session_code' => strtoupper(Str::random(8)),
+            'gallery_token' => Str::random(12), // <--- INI YANG MENYELESAIKAN ERROR 23502
+            'payment_method' => $request->payment_method,
+            'voucher_id' => $voucherId,
+            
         ]);
 
-        // Arahkan ke halaman pemilihan frame
         return redirect()->route('kiosk.frame.index', ['session' => $session->id]);
     }
 
     // Menampilkan halaman pilih frame
     public function frameIndex(BoothSession $session)
     {
-        // Ambil semua frame yang aktif untuk ditampilkan ke pengunjung
-        $frames = Frame::where('is_active', true)->get();
-        
+        // Load relasi voucher beserta frame yang ditautkan kepadanya
+        $session->load('voucher.frames');
+
+        // Cek apakah user menggunakan Voucher dan vouchernya ada
+        if ($session->payment_method === 'voucher' && $session->voucher) {
+
+            // JIKA VOUCHER PUNYA FRAME KHUSUS = VOUCHER EKSKLUSIF
+            if ($session->voucher->frames->count() > 0) {
+                // HANYA tampilkan frame yang ditautkan ke voucher ini (Frame publik disembunyikan)
+                $frames = $session->voucher->frames;
+            }
+            // JIKA VOUCHER TIDAK PUNYA FRAME KHUSUS = VOUCHER BIASA / DISKON REGULER
+            else {
+                // HANYA tampilkan frame publik (Frame eksklusif disembunyikan)
+                $frames = Frame::where('is_public', true)->get();
+            }
+        }
+        // JIKA MENGGUNAKAN CASHLESS / ONLINE PAY
+        else {
+            // HANYA tampilkan frame publik
+            $frames = Frame::where('is_public', true)->get();
+        }
+
         return Inertia::render('Kiosk/SelectFrame', [
             'session' => $session,
             'frames' => $frames
