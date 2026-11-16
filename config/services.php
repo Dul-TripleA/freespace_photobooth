@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    // 'static_qris' => [
+    //     'price' => (int) env('PHOTOBOOTH_PRICE', 12000),
+    //     'webhook_token' => env('STATIC_QRIS_WEBHOOK_TOKEN'),
+    //     'image_url' => '/images/qris-gopay.jpeg', // Simpan gambar QRIS statis di public/images/qris-gopay.png
+    // ],
+    'static_qris' => [
+        'price' => (int) env('PHOTOBOOTH_PRICE', 100),
+        'webhook_token' => env('STATIC_QRIS_WEBHOOK_TOKEN'),
+        'raw_string' => env('STATIC_QRIS_STRING'),
+    ],
 ];

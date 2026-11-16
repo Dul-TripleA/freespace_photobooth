@@ -7,6 +7,8 @@ use App\Models\BoothSession;
 use App\Http\Controllers\Public\GalleryController;
 use App\Http\Controllers\Admin\VoucherController;
 
+use App\Http\Controllers\Kiosk\PaymentController;
+
 use App\Models\Frame;
 use App\Models\Voucher;
 use Inertia\Inertia;
@@ -84,3 +86,7 @@ Route::get('/admin/vouchers', [VoucherController::class, 'index'])->name('admin.
 Route::post('/admin/vouchers', [VoucherController::class, 'store'])->name('admin.vouchers.store');
 Route::delete('/admin/vouchers/{voucher}', [VoucherController::class, 'destroy'])->name('admin.vouchers.destroy');
 Route::patch('/admin/vouchers/{voucher}/toggle', [VoucherController::class, 'toggleActive'])->name('admin.vouchers.toggle');
+
+Route::get('/kiosk/payment/{session}', [PaymentController::class, 'show'])->name('kiosk.payment.show');
+Route::get('/kiosk/payment/{session}/status', [PaymentController::class, 'status'])->name('kiosk.payment.status');
+Route::post('/webhooks/qris-static', [PaymentController::class, 'webhook'])->name('webhooks.qris.static');

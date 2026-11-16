@@ -38,15 +38,53 @@ class SessionController extends Controller
 
             $voucherId = $voucher->id;
         }
+        $request->validate([
+            'payment_method' => 'required|string|in:cashless,online,online_pay,voucher',
+            'voucher_code' => 'required_if:payment_method,voucher|nullable|string',
+        ]);
 
-        // PERBAIKAN: Tambahkan gallery_token di sini
+        $isOnlinePay = in_array($request->payment_method, ['online', 'online_pay']);
+        $voucherId = null;
+        $amount = 0;
+
+        if ($isOnlinePay) {
+            $basePrice = config('services.static_qris.price', 25000);
+
+            $activeAmounts = BoothSession::where('payment_status', 'unpaid')
+                ->where('created_at', '>=', now()->subMinutes(20))
+                ->pluck('amount')
+                ->toArray();
+
+            do {
+                $uniqueCode = random_int(1, 999);
+                $amount = $basePrice + $uniqueCode;
+            } while (in_array($amount, $activeAmounts));
+        } elseif ($request->payment_method === 'voucher') {
+            $voucher = Voucher::where('code', strtoupper($request->voucher_code))
+                ->where('is_active', true)
+                ->first();
+
+            if (!$voucher) return back()->withErrors(['voucher_code' => 'Kode voucher tidak valid.']);
+            if ($voucher->expires_at && now()->greaterThan($voucher->expires_at)) return back()->withErrors(['voucher_code' => 'Voucher kedaluwarsa.']);
+            if ($voucher->quota !== null && $voucher->used_count >= $voucher->quota) return back()->withErrors(['voucher_code' => 'Kuota voucher habis.']);
+
+            $voucherId = $voucher->id;
+        }
+
         $session = BoothSession::create([
             'session_code' => strtoupper(Str::random(8)),
-            'gallery_token' => Str::random(12), // <--- INI YANG MENYELESAIKAN ERROR 23502
+            'invoice_number' => $isOnlinePay ? 'QR-' . strtoupper(Str::random(8)) : null,
+            'gallery_token' => Str::random(12),
             'payment_method' => $request->payment_method,
+            'payment_status' => $isOnlinePay ? 'pending' : 'paid',
+            'amount' => $amount,
             'voucher_id' => $voucherId,
-            
+            'paid_at' => $isOnlinePay ? null : now(),
         ]);
+
+        if ($isOnlinePay) {
+            return redirect()->route('kiosk.payment.show', ['session' => $session->id]);
+        }
 
         return redirect()->route('kiosk.frame.index', ['session' => $session->id]);
     }
