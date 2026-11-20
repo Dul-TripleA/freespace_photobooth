@@ -9,6 +9,9 @@ use App\Models\Voucher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Illuminate\Validation\ValidationException;
+use App\Models\CashlessCode;
+use Illuminate\Support\Facades\DB;
 
 class SessionController extends Controller
 {
@@ -21,36 +24,65 @@ class SessionController extends Controller
     public function start(Request $request)
     {
         $request->validate([
-            'payment_method' => 'required|string',
-            'voucher_code' => 'required_if:payment_method,voucher|nullable|string'
-        ]);
-
-        $voucherId = null;
-
-        if ($request->payment_method === 'voucher') {
-            $voucher = Voucher::where('code', strtoupper($request->voucher_code))
-                ->where('is_active', true)
-                ->first();
-
-            if (!$voucher) return back()->withErrors(['voucher_code' => 'Kode voucher tidak valid.']);
-            if ($voucher->expires_at && now()->greaterThan($voucher->expires_at)) return back()->withErrors(['voucher_code' => 'Voucher kedaluwarsa.']);
-            if ($voucher->quota !== null && $voucher->used_count >= $voucher->quota) return back()->withErrors(['voucher_code' => 'Kuota voucher habis.']);
-
-            $voucherId = $voucher->id;
-        }
-        $request->validate([
             'payment_method' => 'required|string|in:cashless,online,online_pay,voucher',
             'voucher_code' => 'required_if:payment_method,voucher|nullable|string',
+            'cashless_code' => 'required_if:payment_method,cashless|nullable|string',
+        ], [
+            'cashless_code.required_if' => 'Masukkan kode unik dari operator terlebih dahulu.',
+            'voucher_code.required_if' => 'Masukkan kode voucher terlebih dahulu.',
         ]);
 
-        $isOnlinePay = in_array($request->payment_method, ['online', 'online_pay']);
-        $voucherId = null;
-        $amount = 0;
+        $method = $request->input('payment_method');
 
-        if ($isOnlinePay) {
+        // 1. JALUR CASHLESS (Kode Unik Sekali Pakai)
+        if ($method === 'cashless') {
+            $inputCode = strtoupper(trim($request->input('cashless_code')));
+
+            $session = DB::transaction(function () use ($inputCode) {
+                $cashlessCode = CashlessCode::where('code', $inputCode)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$cashlessCode) {
+                    throw ValidationException::withMessages([
+                        'cashless_code' => 'Kode tidak ditemukan. Periksa kembali kode Anda.',
+                    ]);
+                }
+
+                if ($cashlessCode->is_used) {
+                    throw ValidationException::withMessages([
+                        'cashless_code' => 'Kode ini sudah pernah digunakan.',
+                    ]);
+                }
+
+                $session = BoothSession::create([
+                    'session_code' => 'CSH-' . strtoupper(Str::random(8)),
+                    'invoice_number' => null,
+                    'gallery_token' => Str::random(12),
+                    'payment_method' => 'cashless',
+                    'payment_status' => 'paid',
+                    'amount' => 0,
+                    'voucher_id' => null,
+                    'paid_at' => now(),
+                ]);
+
+                $cashlessCode->update([
+                    'is_used' => true,
+                    'used_at' => now(),
+                    'booth_session_id' => $session->id,
+                ]);
+
+                return $session;
+            });
+
+            return redirect()->route('kiosk.frame.index', ['session' => $session->id]);
+        }
+
+        // 2. JALUR ONLINE PAY (QRIS Dinamis)
+        if (in_array($method, ['online', 'online_pay'])) {
             $basePrice = config('services.static_qris.price', 25000);
 
-            $activeAmounts = BoothSession::where('payment_status', 'unpaid')
+            $activeAmounts = BoothSession::whereIn('payment_status', ['pending', 'unpaid'])
                 ->where('created_at', '>=', now()->subMinutes(20))
                 ->pluck('amount')
                 ->toArray();
@@ -59,32 +91,49 @@ class SessionController extends Controller
                 $uniqueCode = random_int(1, 999);
                 $amount = $basePrice + $uniqueCode;
             } while (in_array($amount, $activeAmounts));
-        } elseif ($request->payment_method === 'voucher') {
-            $voucher = Voucher::where('code', strtoupper($request->voucher_code))
-                ->where('is_active', true)
-                ->first();
 
-            if (!$voucher) return back()->withErrors(['voucher_code' => 'Kode voucher tidak valid.']);
-            if ($voucher->expires_at && now()->greaterThan($voucher->expires_at)) return back()->withErrors(['voucher_code' => 'Voucher kedaluwarsa.']);
-            if ($voucher->quota !== null && $voucher->used_count >= $voucher->quota) return back()->withErrors(['voucher_code' => 'Kuota voucher habis.']);
+            $session = BoothSession::create([
+                'session_code' => strtoupper(Str::random(8)),
+                'invoice_number' => 'QR-' . strtoupper(Str::random(8)),
+                'gallery_token' => Str::random(12),
+                'payment_method' => $method,
+                'payment_status' => 'pending',
+                'amount' => $amount,
+                'voucher_id' => null,
+                'paid_at' => null,
+            ]);
 
-            $voucherId = $voucher->id;
+            return redirect()->route('kiosk.payment.show', ['session' => $session->id]);
+        }
+
+        // 3. JALUR VOUCHER
+        $voucherCode = strtoupper(trim($request->input('voucher_code')));
+        $voucher = Voucher::where('code', $voucherCode)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$voucher) {
+            return back()->withErrors(['voucher_code' => 'Kode voucher tidak valid.']);
+        }
+
+        if ($voucher->expires_at && now()->greaterThan($voucher->expires_at)) {
+            return back()->withErrors(['voucher_code' => 'Voucher kedaluwarsa.']);
+        }
+
+        if ($voucher->quota !== null && $voucher->used_count >= $voucher->quota) {
+            return back()->withErrors(['voucher_code' => 'Kuota voucher habis.']);
         }
 
         $session = BoothSession::create([
             'session_code' => strtoupper(Str::random(8)),
-            'invoice_number' => $isOnlinePay ? 'QR-' . strtoupper(Str::random(8)) : null,
+            'invoice_number' => null,
             'gallery_token' => Str::random(12),
-            'payment_method' => $request->payment_method,
-            'payment_status' => $isOnlinePay ? 'pending' : 'paid',
-            'amount' => $amount,
-            'voucher_id' => $voucherId,
-            'paid_at' => $isOnlinePay ? null : now(),
+            'payment_method' => 'voucher',
+            'payment_status' => 'paid',
+            'amount' => 0,
+            'voucher_id' => $voucher->id,
+            'paid_at' => now(),
         ]);
-
-        if ($isOnlinePay) {
-            return redirect()->route('kiosk.payment.show', ['session' => $session->id]);
-        }
 
         return redirect()->route('kiosk.frame.index', ['session' => $session->id]);
     }
